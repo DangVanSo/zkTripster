@@ -23,6 +23,7 @@ drand_core = "*"
 humantime = "*"
 bincode = "*"
 tlock = "*"
+hex = "*"
 
 
 [build-dependencies]
