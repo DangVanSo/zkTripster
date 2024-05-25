@@ -120,6 +120,7 @@ fn main() {
         key_hash,
     };
 
+    // 2538deba67103e77231c49c845312a2a07d9767d06bc4ad2741856341598f129
     // The verification key is used to verify that the proof corresponds to the execution of the
     // program on the given input.
     //

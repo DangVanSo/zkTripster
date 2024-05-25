@@ -86,7 +86,7 @@ fn main() {
     let mut rng = rand::thread_rng();
 
     let key: [u8; 32] = rng.gen();
-    let nonce: [u8; 12] = rng.gen();
+    let nonce: [u8; 12] = [12u8; 12];
 
     let client: drand_core::HttpClient =
         "https://api.drand.sh/dbd506d6ef76e5f386f41c651dcb808c5bcbd75471cc4eafa3f4df7ad4e4c493"
@@ -113,6 +113,8 @@ fn main() {
     // Setup the program.
     let (pk, vk) = client.setup(ZKPOEX_ELF);
 
+    println!("vk: {:?}", hex::encode(vk.hash_bytes()));
+
     // Setup the inputs.;
     let mut stdin = SP1Stdin::new();
     stdin.write(&(
@@ -126,8 +128,14 @@ fn main() {
 
     // Generate the proof.
     let proof = client
-        .prove_compressed(&pk, stdin)
+        .prove(&pk, stdin)
         .expect("failed to generate proof");
+
+    client
+        .verify(&proof, &vk)
+        .expect("failed to verify proof");
+
+    let _ = proof.save("./zkpoex.bincode");
 
     let _ = fs::create_dir_all(PathBuf::from("./data"));
     std::fs::write(PathBuf::from("./data/zkpoex_enc_key"), key).expect("failed to write fixture");
@@ -163,8 +171,6 @@ fn main() {
         blockchain_settings: args.blockchain_settings,
         vkey: vk.bytes32().to_string(),
     };
-
-    let _ = proof.save("./zkpoex.bincode");
 
     // The verification key is used to verify that the proof corresponds to the execution of the
     // program on the given input.
