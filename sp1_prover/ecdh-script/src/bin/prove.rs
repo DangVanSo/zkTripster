@@ -69,23 +69,30 @@ fn main() {
         .to_bytes()
         .to_vec();
 
+    let seller_sk = Skk256::from_bytes(&local_sk).unwrap();
+    let buyer_pk = Pkk256::from_bytes(&vendor_pk).unwrap();
+
+    let shared_key: [u8; 32] = ECDHNISTK256::generate_shared_secret(&seller_sk, &buyer_pk)
+        .unwrap()
+        .to_bytes()
+        .to_vec()
+        .try_into()
+        .unwrap();
+
     let local_sk_hex = hex::encode(&local_sk);
     let vendor_pk_hex = hex::encode(&vendor_pk);
-
-    println!("local sk: {}", local_sk_hex);
-    println!("vendor pk: {}", vendor_pk_hex);
 
     // let local_sk = hex::decode(&args.local_sk).unwrap();
     // let vendor_pk = hex::decode(&args.vendor_pk).unwrap();
 
-    let mut rng = rand::thread_rng();
-
-    let nonce: [u8; 12] = rng.gen();
+    // this is the first message encrypted under *this* key 
+    let nonce: [u8; 12] = [0u8; 12];
 
     let key: [u8; 32] = fs::read("./data/zkpoex_enc_key")
         .unwrap()
         .try_into()
         .unwrap();
+
 
     // Setup the prover client.
     let client = ProverClient::new();
@@ -102,10 +109,8 @@ fn main() {
         .prove_groth16(&pk, stdin)
         .expect("failed to generate proof");
 
-    let KeyEncOut {
-        keyHash,
-        keyCipher,
-    } = KeyEncOut::abi_decode(proof.public_values.as_slice(), false).unwrap();
+    let KeyEncOut { keyHash, keyCipher } =
+        KeyEncOut::abi_decode(proof.public_values.as_slice(), false).unwrap();
 
     let key_hash = hex::encode(keyHash);
     println!("Key Hash: {}", key_hash);
