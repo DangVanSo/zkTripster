@@ -82,7 +82,7 @@ export const getBuyerAddressFromTokenPurchasedEvent = (tokenPurchasedLog: Log) =
 export const postExploit = async (walletClient: WalletClient, description: string, price: bigint, hash: bigint) => await writeContract(walletClient, 'postExploit', [description, price, hash], BigInt(2))
 
 // A vendor can purchase the exploit token from the marketplace
-export const purchaseToken = async (walletClient: WalletClient, tokenId: number) => await writeContract(walletClient, 'purchaseToken', [tokenId], BigInt(2))
+export const purchaseToken = async (walletClient: WalletClient, tokenId: number) => await writeContract(walletClient, 'purchaseToken', [tokenId], BigInt(tokenId))
 
 // The White Hat Hacker uses the vendor's public key derived from the purchaseToken transaction to compute the proofs and receive the payment
 //export const redeem = async (walletClient: WalletClient, tokenId: number, key: bigint) => await writeContract(walletClient, 'redeemExploit', [tokenId, key])

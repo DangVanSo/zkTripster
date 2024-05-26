@@ -10,7 +10,7 @@ import useMetaMask from "../hooks/useMetamask.ts";
 import {purchaseToken, unwatchPurchase, unwatchRedeem} from "../../contracts/src/scripts/api.ts";
 
 const IssueForm: React.FC = () => {
-    const {contract_address} = useParams<{ contract_address: string }>();
+    const {contract_address : contract_address_id} = useParams<{ contract_address: string }>();
     const [zkPoex, setZkPoex] = useState('')
     const [enc, setEnc] = useState('')
     const [purchaseTokenResult, setPurchaseTokenResult] = useState()
@@ -18,29 +18,12 @@ const IssueForm: React.FC = () => {
     const {isConnected, connectMetaMask, account, walletClient} = useMetaMask();
 
     useEffect(() => {
-        const fetchData = async () => {
-            if (contract_address) {
-                try {
-                    const data = await fetchContractData(contract_address);
-                    setZkPoex(data.zkPoex);
-                    setEnc(data.Enc);
-                } catch (error) {
-                    console.error('Error fetching contract data:', error);
-                }
-            }
-        };
-        void fetchData();
-    }, [contract_address]);
-
-    useEffect(() => {
-        if (zkPoex && enc) {
             if (verifyZkPoex()) {
                 setVerificationResult('Valid proof');
             } else {
                 setVerificationResult('Invalid proof');
             }
-        }
-    }, [zkPoex, enc]);
+    }, []);
 
 
     useEffect(() => {
@@ -97,7 +80,7 @@ const IssueForm: React.FC = () => {
                                     color="primary"
                                     onClick={async () => {
                                         if (walletClient) {
-                                            const purchaseTokenResult = await purchaseToken(walletClient, 2)
+                                            const purchaseTokenResult = await purchaseToken(walletClient, contract_address_id)
                                             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                                             // @ts-expect-error
                                             setPurchaseTokenResult(purchaseTokenResult)
