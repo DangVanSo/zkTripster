@@ -5,15 +5,15 @@ edition = "2021"
 
 [[bin]]
 name = "prove"
-path = "src/bin/prove.rs"
+path = "src/prove.rs"
 
 [[bin]]
 name = "artifacts"
-path = "src/bin/artifacts.rs"
+path = "src/artifacts.rs"
 
 [[bin]]
 name = "verify"
-path = "src/bin/verify.rs"
+path = "src/verify.rs"
 
 [dependencies]
 sp1-sdk = { git = "https://github.com/succinctlabs/sp1.git", rev = "v1.0.0-testnet" }
@@ -28,6 +28,7 @@ humantime = "*"
 bincode = "*"
 tlock = "*"
 hex = "*"
+anyhow = "*"
 
 
 [build-dependencies]
