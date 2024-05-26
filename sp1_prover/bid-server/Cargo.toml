@@ -1,13 +1,35 @@
-[workspace]
 [package]
 version = "0.1.0"
 name = "bid-server"
 edition = "2021"
 
+[[bin]]
+name = "tripster_cli"
+path = "src/bin/cli.rs"
 
 [dependencies]
 rocket = "0.5.1"
-cli-batteries = "0.5"
+anyhow = "1.0.57"
+async-std = { version = "1.10.0", features = ["attributes"] }
+async-trait = "0.1.56"
+backoff = { version = "0.4.0", features = ["tokio"] }
+chrono = "0.4.19"
+clap = { version = "4.0.18", features = ["derive"] }
+
+ethers = "2"
+eyre = "0.6.8"
+futures = "0.3.21"
+futures-util = "0.3"
+hex = "0.4"
+humantime = "2.1.0"
+inquire = { version = "0.2.1" }
+itertools = "0.10.5"
+rand = "0.8.5"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1"
+strum = { version = "0.24", features = ["derive"] }
+surf = "2.3.2"
+url = "2"
+
 
 [build-dependencies]
-cli-batteries = "0.5"
