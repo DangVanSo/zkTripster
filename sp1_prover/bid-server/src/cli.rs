@@ -75,11 +75,24 @@ async fn prover(args: ProverArgs) -> anyhow::Result<()> {
         .password
         .unwrap_or_else(|| Password::new("Password:").prompt().unwrap());
     let keystore = Path::new(&args.keystore_dir).join(name);
-    let wallet = read_from_keystore(keystore, password)?;
+    let (wallet, local_sk) = read_from_keystore(keystore, password)?;
     info!("Our address: {}", wallet.address());
+    // let chain_id = {
+    //     let provider = Provider::new(Http::new(args.network.get_endpoint()));
 
-    let client =
-        Arc::new(Provider::new(Http::new(args.network.get_endpoint())).with_signer(wallet));
+    //     provider
+    //         .get_chainid()
+    //         .await
+    //         .map_err(|_e| anyhow!("error making request to the specified Ethereum RPC address"))?
+    // };
+
+    let chain_id: u64 = args.network.get_chainid().parse().unwrap();
+    let client = Arc::new(
+        Provider::new(Http::new(args.network.get_endpoint()))
+            .with_signer(wallet.with_chain_id(chain_id)),
+    );
+
+    let block = client.get_block_number().await?;
 
     let platform_contract = Address::from_slice(&hex::decode(args.platform_contract).unwrap());
     // .map_err(|e| anyhow!("error parsing target address: {e}"))?;
@@ -95,25 +108,61 @@ async fn prover(args: ProverArgs) -> anyhow::Result<()> {
     // let proof_bytes = vec![0u8; 32];
     // let key_hash = [0u8; 32];
 
-    contract
-        .post_exploit(
+    let vuln_id: U256 = {
+        let vuln_id = contract
+            .post_exploit(
+                "got 'em".to_string(),
+                bounty_gwei,
+                hex::decode(fixture.key_hash).unwrap().try_into().unwrap(),
+            )
+            .await?;
+        let tx = contract.post_exploit(
             "got 'em".to_string(),
             bounty_gwei,
             hex::decode(fixture.key_hash).unwrap().try_into().unwrap(),
-        )
-        .await?;
+        );
+
+        let pending_tx = tx.send().await?;
+        let _mined_tx = pending_tx.await?;
+
+        vuln_id
+    };
+
+    println!("vuln id: {}", vuln_id);
 
     tokio::spawn(async move {
-        server::rocket(proof_bytes, bounty_eth)
+        server::rocket(proof_bytes, bounty_eth, vuln_id.to_string())
             .launch()
             .await
             .expect("expect server to run");
     });
 
-    let event = contract.events::<ExploitRedeemed>().unwrap();
+    // for testing
+    // {
+    //     let c = contract.clone();
+    //     tokio::spawn(async move {
+    //         let tx = c.purchase_token(vuln_id);
 
+    //         let pending_tx = tx.send().await.unwrap();
+    //         let _mined_tx = pending_tx.await.unwrap();
+    //     });
+    // }
 
-    //  stream.
+    let events = contract.events().from_block(0);
+    let mut stream = events.stream().await?.take(1);
+
+    let vendor_pk_bytes = hex::decode(args.vendor_pk).unwrap();
+
+    while let Some(std::result::Result::Ok(e)) = stream.next().await {
+        println!("RedeemedFilter event: {e:?}");
+
+        let (_, proof, public_inputs) = zkecdh::prove(&local_sk, &vendor_pk_bytes)?;
+
+        let tx = contract.redeem_exploit(vuln_id, proof.into(), public_inputs.into());
+
+        let pending_tx = tx.send().await.unwrap();
+        let _mined_tx = pending_tx.await.unwrap();
+    }
 
     Ok(())
 }

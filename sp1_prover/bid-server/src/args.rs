@@ -68,6 +68,10 @@ pub struct ProverArgs {
         help = "server address"
     )]
     pub server_address: String,
+    
+
+    #[clap(long)]
+    pub vendor_pk: String,
 
     #[clap(flatten)]
     pub args: zkPoExArgs,

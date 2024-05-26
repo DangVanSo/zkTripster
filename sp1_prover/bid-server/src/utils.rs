@@ -52,9 +52,9 @@ pub fn write_to_keystore<D: AsRef<Path>, S: AsRef<str>, P: AsRef<[u8]>>(
 pub fn read_from_keystore<P: AsRef<Path>, S: AsRef<[u8]>>(
     path: P,
     password: S,
-) -> anyhow::Result<LocalWallet> {
-    let sk_bytes = eth_keystore::decrypt_key(path, password);
-    let sk = SigningKey::from_slice(sk_bytes?.as_slice())
+) -> anyhow::Result<(LocalWallet, Vec<u8>)> {
+    let sk_bytes = eth_keystore::decrypt_key(path, password)?;
+    let sk = SigningKey::from_slice(sk_bytes.as_slice())
         .map_err(|e| anyhow!("error parsing key: {e}"))?;
-    Ok(LocalWallet::from(sk))
+    Ok((LocalWallet::from(sk), sk_bytes))
 }

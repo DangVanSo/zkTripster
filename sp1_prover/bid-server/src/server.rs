@@ -7,12 +7,6 @@ use clap::Parser;
 use rocket::serde::json::Json;
 use rocket_cors::{AllowedHeaders, AllowedOrigins, Guard, Responder};
 
-struct Runtime {
-    // tx: mpsc::Sender<VendorRequest>,
-    proof: String,
-    price: f64,
-}
-
 // pub enum VendorRequest {
 //     Swap {
 //         vendor_bid: f64,
@@ -20,24 +14,22 @@ struct Runtime {
 //     },
 // }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 #[serde(crate = "rocket::serde")]
 struct Resp {
     proof: String,
-    // address: String,
+    price: f64,
+    vuln_id: String,
 }
 
 // return contets of proof
 #[get("/proof")]
-async fn proof(cors: Guard<'_>, args: &State<Runtime>) -> Responder<Json<Resp>> {
-    let resp = Resp {
-        proof: args.proof.clone(),
-        // address: args.address.clone(),
-    };
+async fn proof(cors: Guard<'_>, args: &State<Resp>) -> Responder<Json<Resp>> {
+    let resp = args.inner().clone();
     cors.responder(Json(resp))
 }
 
-pub fn rocket(proof_bytes: Vec<u8>, price: f64) -> Rocket<Build> {
+pub fn rocket(proof_bytes: Vec<u8>, price: f64, vuln_id: String) -> Rocket<Build> {
     let allowed_origins = AllowedOrigins::some_exact(&["https://zktripster.pages.dev"]);
     let cors = rocket_cors::CorsOptions {
         allowed_origins,
@@ -59,6 +51,6 @@ pub fn rocket(proof_bytes: Vec<u8>, price: f64) -> Rocket<Build> {
     rocket::build()
         .mount("/", routes![proof])
         .mount("/", rocket_cors::catch_all_options_routes())
-        .manage(Runtime { proof: hex::encode(proof_bytes), price })
+        .manage(Resp { proof: hex::encode(proof_bytes), price, vuln_id })
         .manage(cors)
 }
