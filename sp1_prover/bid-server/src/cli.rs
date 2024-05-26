@@ -151,6 +151,7 @@ async fn prover(args: ProverArgs) -> anyhow::Result<()> {
     let events = contract.events().from_block(0);
     let mut stream = events.stream().await?.take(1);
 
+    // wasn't able to get buyer pk from event so need to pass it into CL
     let vendor_pk_bytes = hex::decode(args.vendor_pk).unwrap();
 
     while let Some(std::result::Result::Ok(e)) = stream.next().await {
