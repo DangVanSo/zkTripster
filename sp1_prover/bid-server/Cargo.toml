@@ -5,9 +5,10 @@ edition = "2021"
 
 
 [dependencies]
-rocket = "0.5.1"
+rocket = { version = "0.5.1", features = ["json"] }
 cli-batteries = "0.5"
 clap = { version = "4.5.4", features = ["derive"] }
+rocket_cors = "0.6.0"
 
 [build-dependencies]
 cli-batteries = "0.5"
