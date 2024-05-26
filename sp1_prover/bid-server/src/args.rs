@@ -41,19 +41,24 @@ pub struct ProverArgs {
     )]
     pub keystore_dir: String,
 
-    #[clap(short, long, help = "wallet name")]
+    #[clap(short, long, help = "wallet name", default_value = "default")]
     pub wallet_name: Option<String>,
 
     #[clap(short, long, help = "wallet password")]
     pub password: Option<String>,
 
-    #[clap(short, long, default_value = "local", help = "Ethereum network")]
+    #[clap(short, long, default_value = "sepolia", help = "Ethereum network")]
     pub network: Network,
 
-    #[clap(index = 1, help = "platform address", default_value = "0x7C3c3cEFAde338Bb4461d365ed5B1955A944F2cD")]
+    #[clap(
+        long = "contract",
+        short = 'c',
+        help = "platform address",
+        default_value = "7C3c3cEFAde338Bb4461d365ed5B1955A944F2cD"
+    )]
     pub platform_contract: String,
 
-    #[clap(index = 2, help = "ask bounty amount (in ETH)")]
+    #[clap(long = "bounty", short = 'b', help = "ask bounty amount (in ETH)")]
     pub ask_bounty: f64,
 
     #[clap(
@@ -85,7 +90,7 @@ impl Network {
                 Url::parse("https://mainnet.infura.io/v3/c60b0bb42f8a4c6481ecd229eddaca27").unwrap()
             }
             Network::Sepolia => {
-                Url::parse("https://goerli.infura.io/v3/c60b0bb42f8a4c6481ecd229eddaca27").unwrap()
+                Url::parse("https://sepolia.infura.io/v3/c60b0bb42f8a4c6481ecd229eddaca27").unwrap()
             }
             Network::Local => Url::parse("http://localhost:8545").unwrap(),
         }

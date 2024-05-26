@@ -26,7 +26,7 @@ use sp1_sdk::{HashableKey, ProverClient, SP1Stdin};
 pub const ZKPOEX_ELF: &[u8] = include_bytes!("../../zk-poex/elf/riscv32im-succinct-zkvm-elf");
 
 /// The arguments for the prove command.
-#[derive(Parser, Debug)]
+#[derive(Clone, Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 pub struct zkPoExArgs {
     #[clap(long)]
@@ -63,17 +63,19 @@ pub struct zkPoExArgs {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SP1ZkPoExProofFixture {
-    key: [u8; 32],
-    nonce: [u8; 12],
-    round: u64,
-    before: String,
-    after: String,
-    hash_private_inputs: String,
-    chacha_cipher: Vec<u8>,
-    tlock_cipher: Vec<u8>,
-    calldata: String,
-    blockchain_settings: String,
-    vkey: String,
+    pub key: [u8; 32],
+    pub nonce: [u8; 12],
+    pub round: u64,
+    pub before: String,
+    pub after: String,
+    pub hash_private_inputs: String,
+    pub chacha_cipher: Vec<u8>,
+    pub key_hash: String,
+    pub tlock_cipher: Vec<u8>,
+    pub calldata: String,
+    pub blockchain_settings: String,
+    
+    pub vkey: String,
 }
 
 fn main() {
@@ -83,7 +85,7 @@ fn main() {
     // Parse the command line arguments.
     let args = zkPoExArgs::parse();
 
-    let fixture = prove(args).unwrap();
+    let (fixture, _) = prove(args).unwrap();
 
     // The verification key is used to verify that the proof corresponds to the execution of the
     // program on the given input.
@@ -101,7 +103,7 @@ fn main() {
     .expect("failed to write fixture");
 }
 
-pub fn prove(args: zkPoExArgs) -> anyhow::Result<SP1ZkPoExProofFixture> {
+pub fn prove(args: zkPoExArgs) -> anyhow::Result<(SP1ZkPoExProofFixture, Vec<u8>)> {
     let client: drand_core::HttpClient =
         "https://api.drand.sh/dbd506d6ef76e5f386f41c651dcb808c5bcbd75471cc4eafa3f4df7ad4e4c493"
             .try_into()
@@ -153,10 +155,12 @@ pub fn prove(args: zkPoExArgs) -> anyhow::Result<SP1ZkPoExProofFixture> {
 
     let _ = proof.save("./zkpoex.bincode");
 
+    let proof_bytes = bincode::serialize(&proof).unwrap();
+
     let _ = fs::create_dir_all(PathBuf::from("./data"));
     std::fs::write(PathBuf::from("./data/zkpoex_enc_key"), key).expect("failed to write fixture");
 
-    let (before, after, hash_private_inputs, chacha_cipher, _): (
+    let (before, after, hash_private_inputs, chacha_cipher, key_hash): (
         String,
         String,
         String,
@@ -182,6 +186,7 @@ pub fn prove(args: zkPoExArgs) -> anyhow::Result<SP1ZkPoExProofFixture> {
         nonce,
         round,
         chacha_cipher,
+        key_hash,
         tlock_cipher,
         calldata: args.calldata,
         blockchain_settings: args.blockchain_settings,
@@ -194,7 +199,7 @@ pub fn prove(args: zkPoExArgs) -> anyhow::Result<SP1ZkPoExProofFixture> {
     // the public values.
     println!("Public Values: {}", proof.public_values.bytes());
 
-    Ok(fixture)
+    Ok((fixture, proof_bytes))
 }
 
 pub fn round_at(chain_info: &ChainInfo, t: SystemTime) -> u64 {
