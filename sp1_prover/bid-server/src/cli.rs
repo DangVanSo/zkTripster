@@ -113,7 +113,7 @@ async fn prover(args: ProverArgs) -> anyhow::Result<()> {
             .post_exploit(
                 "got 'em".to_string(),
                 bounty_gwei,
-                hex::decode(fixture.key_hash).unwrap().try_into().unwrap(),
+                hex::decode(&fixture.key_hash).unwrap().try_into().unwrap(),
             )
             .await?;
         let tx = contract.post_exploit(
