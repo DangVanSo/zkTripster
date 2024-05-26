@@ -15,7 +15,7 @@ const Header: React.FC = () => {
         <StyledAppBar position="static" sx={{width: '100%'}}>
             <Toolbar>
                 <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
-                    My Web3 App
+                    zkTripsters
                 </Typography>
                 <StyledLink component={RouterLink} to="/" color="inherit" underline="none" sx={{marginRight: 2}}>
                     Home
