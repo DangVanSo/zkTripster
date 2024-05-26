@@ -35,7 +35,7 @@ const writeContract = async (walletClient: WalletClient,   functionName: string,
         address: CONTRACT as `0x${string}`,
         abi: abi,
         functionName: functionName,
-        args: args
+        args: args || [0]
     })
     return await walletClient.writeContract(request)
 }

@@ -7,6 +7,7 @@ import Link, {LinkProps} from '@mui/material/Link';
 import styled from '@emotion/styled'
 import Button from "@mui/material/Button";
 import useMetaMask from "../hooks/useMetamask.ts";
+import Logo from '../assets/logo.svg?react'
 
 const Header: React.FC = () => {
     const {isConnected, connectMetaMask} = useMetaMask();
@@ -14,24 +15,33 @@ const Header: React.FC = () => {
     return (
         <StyledAppBar position="static" sx={{width: '100%'}}>
             <Toolbar>
-                <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
+                <Typography variant="h6" component="div"
+                            sx={{flexGrow: 1, display: 'flex', alignItems: 'center', fontFamily: "Helvetica"}}>
                     zkTripsters
                 </Typography>
-                <StyledLink component={RouterLink} to="/" color="inherit" underline="none" sx={{marginRight: 2}}>
-                    Home
-                </StyledLink>
-                <StyledLink component={RouterLink} to="/issue" color="inherit" underline="none" sx={{marginRight: 2}}>
-                    Issue
-                </StyledLink>
-                <StyledLink component={RouterLink} to="/hacker-info" color="inherit" underline="none">
-                    Hacker info
-                </StyledLink>
-                {!isConnected && (
-                    <StyledButton onClick={() => connectMetaMask()} type="button" variant="contained"
-                                  size="medium" color="primary">
-                        Connect MetaMask
-                    </StyledButton>
-                )}
+                <CenterLogo>
+                    <StyledLink component={RouterLink} to="/" color="inherit" underline="none" sx={{marginRight: 2}}>
+                        <StyledLogo/>
+                    </StyledLink>
+                </CenterLogo>
+                <NavLinks>
+                    <StyledLink component={RouterLink} to="/" color="inherit" underline="none" sx={{marginRight: 2}}>
+                        Home
+                    </StyledLink>
+                    <StyledLink component={RouterLink} to="/issue" color="inherit" underline="none"
+                                sx={{marginRight: 2}}>
+                        Issue
+                    </StyledLink>
+                    <StyledLink component={RouterLink} to="/hacker-info" color="inherit" underline="none">
+                        Hacker info
+                    </StyledLink>
+                    {!isConnected && (
+                        <StyledButton onClick={() => connectMetaMask()} type="button" variant="contained"
+                                      size="medium" color="primary">
+                            Connect MetaMask
+                        </StyledButton>
+                    )}
+                </NavLinks>
             </Toolbar>
         </StyledAppBar>
     );
@@ -56,6 +66,24 @@ const StyledButton = styled(Button)`
     padding-right: 4px;
     margin-left: 20px;
 `
+
+const StyledLogo = styled(Logo)`
+    height: 64px;
+    width: 65px;
+    margin-right: 20px;
+`
+
+const CenterLogo = styled('div')`
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+`;
+
+const NavLinks = styled('div')`
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+`;
 
 export default Header;
 

@@ -6,10 +6,11 @@ import Footer from './components/Footer';
 import Box from '@mui/material/Box';
 import CircleAnimation from "./components/CircleAnimation.tsx";
 import styled from "@emotion/styled";
+import CircleAnimationSmall from "./components/CircleAnimationSmall.tsx";
 
 const App: React.FC = () => {
     return (
-        <Box display="flex" flexDirection="column" minHeight="100vh" style={{ position: 'relative'}}>
+        <Box overflow="hidden" display="flex" flexDirection="column" minHeight="100vh" style={{ position: 'relative'}}>
             <StyledAnimationContainer>
                 <StyledContainer>
                     <CircleAnimation />
@@ -19,6 +20,9 @@ const App: React.FC = () => {
             <Box component="main" flexGrow={1}>
                 <Outlet />
             </Box>
+            <StyledContainerSmall>
+                <CircleAnimationSmall />
+            </StyledContainerSmall>
             <Footer />
         </Box>
     );
@@ -44,6 +48,16 @@ const StyledContainer = styled('div')`
     top: -46%;
     right: auto;
     z-index: -2;
+    display: block;
+    filter: saturate(135%);
+`
+
+const StyledContainerSmall = styled('div')`
+    position: absolute;
+    right: 30%;
+    top: -50%;
+    left: auto;
+    z-index: 0;
     display: block;
     filter: saturate(135%);
 `
