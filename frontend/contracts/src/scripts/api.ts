@@ -3,7 +3,8 @@ import {
     createWalletClient,
     custom,
     http,
-    parseAbiItem } from 'viem'
+    parseAbiItem,
+    encodeFunctionData } from 'viem'
 import { sepolia } from 'viem/chains'
 
 import abi from '../../lib/PoEMarketplace_abi.json'
@@ -61,12 +62,36 @@ export const postExploit = async (description:string, price:bigint, hash:bigint)
 export const purchaseToken = async (tokenId:number) => await writeContract('purchaseToken', [tokenId])
 
 // The White Hat Hacker uses the vendor's public key derived from the purchaseToken transaction to compute the proofs and receive the payment
-export const redeem = async (tokenId:number, key:bigint) => await writeContract('redeemExploit', [tokenId, key])
+//export const redeem = async (tokenId:number, key:bigint) => await writeContract('redeemExploit', [tokenId, key])
 
 // Finally, the vendor can retrieve the shared key from the exploit token
-export const retrieveKey = async (tokenId:number) => publicClient.readContract({
+export const retrieveSharedKeyCipher = async (tokenId:number) => publicClient.readContract({
     address: CONTRACT as `0x${string}`,
     abi: abi,
     functionName: 'getExploitKey',
     args: [tokenId]
 })
+
+// The White Hat computes proofs, then calls the redeem function with the token ID (exploit ID) and the shared key.
+// Returns the transaction hash and the signature to derive the public key, which will be provdied via the front end to the buyer.
+// The buyer will then call the retrieveKey function, and use the retrieved sharedKeyCipher and the public key to decrypt the shared key.
+export const redeemSigned = async (tokenId:number, key:bigint) => {
+    const data = encodeFunctionData({
+        abi: abi,
+        functionName: 'redeemExploit',
+        args: [tokenId, key]
+    })
+
+    const request = await client.prepareTransactionRequest({
+        account,
+        to: CONTRACT as `0x${string}`,
+        value: 0n,
+        data: data
+    })
+
+    const signature = await client.signTransaction(request as any)
+    const txHash = await client.sendRawTransaction(signature as any)
+
+    return { txHash, signature }
+
+}
