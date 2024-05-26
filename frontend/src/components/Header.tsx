@@ -7,7 +7,9 @@ import Link, {LinkProps} from '@mui/material/Link';
 import styled from '@emotion/styled'
 import Button from "@mui/material/Button";
 import useMetaMask from "../hooks/useMetamask.ts";
-import Logo from '../assets/logo.svg?react'
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error
+import Logo from "../assets/logo.svg?react"
 
 const Header: React.FC = () => {
     const {isConnected, connectMetaMask} = useMetaMask();
