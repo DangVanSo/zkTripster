@@ -5,14 +5,12 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import styled from "@emotion/styled";
 import {useParams} from "react-router-dom";
-import {verifyZkPoex, fetchContractData} from "../utils";
+import {verifyZkPoex} from "../utils";
 import useMetaMask from "../hooks/useMetamask.ts";
 import {purchaseToken, unwatchPurchase, unwatchRedeem} from "../../contracts/src/scripts/api.ts";
 
 const IssueForm: React.FC = () => {
     const {contract_address : contract_address_id} = useParams<{ contract_address: string }>();
-    const [zkPoex, setZkPoex] = useState('')
-    const [enc, setEnc] = useState('')
     const [purchaseTokenResult, setPurchaseTokenResult] = useState()
     const [verificationResult, setVerificationResult] = useState<string | null>(null);
     const {isConnected, connectMetaMask, account, walletClient} = useMetaMask();
@@ -80,7 +78,7 @@ const IssueForm: React.FC = () => {
                                     color="primary"
                                     onClick={async () => {
                                         if (walletClient) {
-                                            const purchaseTokenResult = await purchaseToken(walletClient, contract_address_id)
+                                            const purchaseTokenResult = await purchaseToken(walletClient, Number(contract_address_id))
                                             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                                             // @ts-expect-error
                                             setPurchaseTokenResult(purchaseTokenResult)
