@@ -5,14 +5,12 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import styled from "@emotion/styled";
 import {useParams} from "react-router-dom";
-import {verifyZkPoex, formatEthAmount, fetchContractData} from "../utils";
+import {verifyZkPoex, fetchContractData} from "../utils";
 import useMetaMask from "../hooks/useMetamask.ts";
 import {purchaseToken} from "../../contracts/src/scripts/api.ts";
 
 const IssueForm: React.FC = () => {
     const {contract_address} = useParams<{ contract_address: string }>();
-    const [callData, setCallData] = useState<string>('');
-    const [bountyAmount, setBountyAmount] = useState<string>('');
     const [zkPoex, setZkPoex] = useState('')
     const [enc, setEnc] = useState('')
     const [verificationResult, setVerificationResult] = useState<string | null>(null);
@@ -43,17 +41,17 @@ const IssueForm: React.FC = () => {
         }
     }, [zkPoex, enc]);
 
-    const handleBountyAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const formattedValue = formatEthAmount(event.target.value);
-        setBountyAmount(formattedValue);
-    };
-
-    const handleSubmit = async (event: React.FormEvent) => {
-        event.preventDefault();
-        console.log('Contract Address:', contract_address);
-        console.log('Call Data:', callData);
-        console.log('Bounty Amount:', bountyAmount);
-    };
+    // const handleBountyAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    //     const formattedValue = formatEthAmount(event.target.value);
+    //     setBountyAmount(formattedValue);
+    // };
+    //
+    // const handleSubmit = async (event: React.FormEvent) => {
+    //     event.preventDefault();
+    //     console.log('Contract Address:', contract_address);
+    //     console.log('Call Data:', callData);
+    //     console.log('Bounty Amount:', bountyAmount);
+    // };
 
 
     const renderVerificationBox = () => {
@@ -143,10 +141,10 @@ const StyledBox = styled(Box)`
     margin-top: 40px;
 `
 
-const StyledButtonWrapper = styled('div')`
-    width: 100%;
-    text-align: right;
-`
+// const StyledButtonWrapper = styled('div')`
+//     width: 100%;
+//     text-align: right;
+// `
 
 const VerificationResultBox = styled(Box)<{ isValid: boolean }>`
     margin-top: 20px;

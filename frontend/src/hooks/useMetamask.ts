@@ -25,8 +25,11 @@ const useMetaMask = () => {
                 });
 
                 const accounts = await walletClient.request({ method: 'eth_accounts' }) as string[];
-
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
                 setWalletClient(walletClient)
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
                 setAccount(accounts[0]);
                 setIsConnected(true);
             } catch (error) {
@@ -45,9 +48,15 @@ const useMetaMask = () => {
                     transport: custom(window.ethereum),
                 });
 
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
                 const accounts = await publicClient.request({ method: 'eth_accounts' }) as string[];
                 if (accounts.length > 0) {
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error
                     setClient(publicClient);
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error
                     setAccount(accounts[0]);
                     setIsConnected(true);
                 }

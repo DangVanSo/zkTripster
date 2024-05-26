@@ -26,11 +26,10 @@ export const walletClient = createWalletClient({
     transport: custom((window as any).ethereum)
 })
 
-export const [account] = await walletClient.getAddresses()
 
 // generic function to write to the contract and return tx hash
 const writeContract = async (walletClient: WalletClient,   functionName: string, args: any[]) => {
-
+    const [account] = await walletClient.getAddresses()
     const {request} = await publicClient.simulateContract({
         account,
         address: CONTRACT as `0x${string}`,
@@ -88,6 +87,7 @@ export const redeemSigned = async (tokenId:number, key:bigint) => {
         args: [tokenId, key]
     })
 
+    const [account] = await walletClient.getAddresses()
     const request = await client.prepareTransactionRequest({
         account,
         to: CONTRACT as `0x${string}`,
@@ -99,5 +99,4 @@ export const redeemSigned = async (tokenId:number, key:bigint) => {
     const txHash = await client.sendRawTransaction(signature as any)
 
     return { txHash, signature }
-
 }
