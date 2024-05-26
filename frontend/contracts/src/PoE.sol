@@ -10,7 +10,7 @@ import { KeyEnc } from "./KeyEnc.sol";
  * @dev A marketplace for white-hat hackers to sell proofs of exploits to 
  * smart contract stakeholders.
  */
-contract ProofOfExploitMarketplace is ERC721, KeyEnc {
+contract ProofOfExploit is ERC721, KeyEnc {
 
     struct Exploit {
         string description; // can by bytes for more efficient storage
