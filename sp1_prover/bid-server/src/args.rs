@@ -73,6 +73,10 @@ pub struct ProverArgs {
     #[clap(long)]
     pub vendor_pk: String,
 
+    // todo: remove
+    #[clap(long)]
+    pub local_pk: String,
+
     #[clap(flatten)]
     pub args: zkPoExArgs,
 }

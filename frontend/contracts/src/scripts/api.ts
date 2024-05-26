@@ -55,11 +55,11 @@ export const unwatchPurchase = publicClient.watchEvent({
 
 // watches for the TokenPurchased event emitted during the purchaseToken function call. 
 // This will be used to trigger the redeem function call.
-export const unwatchRedeem = publicClient.watchEvent({
+export const unwatchRedeem = (f: any)  => publicClient.watchEvent({
     address: CONTRACT as `0x${string}`,
     event: parseAbiItem('event ExploitRedeemed(uint256 indexed id, address indexed buyer)'),
     // TO DO - call function with logs to derive public key https://viem.sh/docs/utilities/recoverPublicKey#recoverpublickey
-    onLogs: logs => console.log(logs)
+    onLogs: logs => f(logs)
 })
 
 // uses the logs emitted from watch functions 

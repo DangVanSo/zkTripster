@@ -5,29 +5,53 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import styled from "@emotion/styled";
 import {useParams} from "react-router-dom";
-import {verifyZkPoex} from "../utils";
+import {verifyZkPoex, fetchContractData} from "../utils";
 import useMetaMask from "../hooks/useMetamask.ts";
-import {purchaseToken, unwatchPurchase, unwatchRedeem} from "../../contracts/src/scripts/api.ts";
+import {parseEventLogs, purchaseToken, retrieveSharedKeyCipher, unwatchPurchase, unwatchRedeem} from "../../contracts/src/scripts/api.ts";
+import { decryptEcdhChacha20 } from '../utils/decrypt.ts';
 
 const IssueForm: React.FC = () => {
-    const {contract_address : contract_address_id} = useParams<{ contract_address: string }>();
+    const {contract_address} = useParams<{ contract_address: string }>();
     const [purchaseTokenResult, setPurchaseTokenResult] = useState()
+    const [zkPoex, setZkPoex] = useState('')
+    const [enc, setEnc] = useState('')
     const [verificationResult, setVerificationResult] = useState<string | null>(null);
     const {isConnected, connectMetaMask, account, walletClient} = useMetaMask();
 
     useEffect(() => {
+        const fetchData = async () => {
+            if (contract_address) {
+                try {
+                    const data = await fetchContractData(contract_address);
+                    setZkPoex(data.zkPoex);
+                    setEnc(data.Enc); 
+                } catch (error) {
+                    console.error('Error fetching contract data:', error);
+                }
+            }
+        };
+        void fetchData();
+    }, [contract_address]);
+
+    useEffect(() => {
+        if (zkPoex && enc) {
             if (verifyZkPoex()) {
                 setVerificationResult('Valid proof');
             } else {
                 setVerificationResult('Invalid proof');
             }
-    }, []);
+    }}, [zkPoex, enc]);
 
 
     useEffect(() => {
         if (purchaseTokenResult && isConnected) {
             const purchase = unwatchPurchase()
-            const redeem = unwatchRedeem()
+            const redeem = unwatchRedeem((logs) => {
+                const tokenId = parseEventLogs(logs).args.id;
+                // const keyCipher = retrieveSharedKeyCipher(tokenId)
+    
+                console.log('tokenId', tokenId)
+            })
 
             console.log('purchase', purchase)
             console.log('redeem',redeem)
@@ -78,10 +102,11 @@ const IssueForm: React.FC = () => {
                                     color="primary"
                                     onClick={async () => {
                                         if (walletClient) {
-                                            const purchaseTokenResult = await purchaseToken(walletClient, Number(contract_address_id))
+                                            const purchaseTokenResult = await purchaseToken(walletClient, Number(contract_address))
                                             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                                             // @ts-expect-error
                                             setPurchaseTokenResult(purchaseTokenResult)
+
                                         }
                                     }}>
                                 Deposit Tokens

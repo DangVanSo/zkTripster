@@ -6,13 +6,17 @@
 //! RUST_LOG=info cargo run --package fibonacci-script --bin prove --release
 //! ```
 
-use std::{fs, io::Read, path::PathBuf};
+use std::{
+    fs,
+    io::Read,
+    path::{Path, PathBuf},
+};
 
 use alloy_sol_types::{sol, SolType};
 use clap::Parser;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
-use sp1_sdk::{Groth16Proof, HashableKey, ProverClient, SP1Stdin};
+use sp1_sdk::{Groth16Proof, HashableKey, ProverClient, SP1Groth16Proof, SP1Stdin};
 
 /// The ELF (executable and linkable format) file for the Succinct RISC-V zkVM.
 ///
@@ -82,13 +86,13 @@ fn main() {
     // let local_sk_hex = hex::encode(&local_sk);
     // let vendor_pk_hex = hex::encode(&vendor_pk);
 
+    // println!("PK: {}", vendor_pk_hex);
+
     let local_sk = hex::decode(&args.local_sk).unwrap();
     let vendor_pk = hex::decode(&args.vendor_pk).unwrap();
 
-    
-
     // Create the testing fixture so we can test things end-ot-end.
-    let (fixture, _, _) = prove(&local_sk, &vendor_pk).unwrap();
+    let (fixture, _, _) = prove(&local_sk, &vendor_pk, None).unwrap();
 
     // The verification key is used to verify that the proof corresponds to the execution of the
     // program on the given input.
@@ -116,18 +120,44 @@ fn main() {
     .expect("failed to write fixture");
 }
 
-pub fn prove(local_sk: &[u8], vendor_pk: &[u8]) -> anyhow::Result<(SP1EcdhProofFixture, Vec<u8>, Vec<u8>)> {
+pub fn prove(
+    local_sk: &[u8],
+    vendor_pk: &[u8],
+    path_to: Option<&Path>,
+) -> anyhow::Result<(SP1EcdhProofFixture, Vec<u8>, Vec<u8>)> {
     let local_sk_hex = hex::encode(local_sk);
     let vendor_pk_hex = hex::encode(&vendor_pk);
 
-    // this is the first message encrypted under *this* key 
+    if let Some(path_to) = path_to {
+        // check if file exists if yes read from it
+        if path_to.exists() {
+
+            let proof = SP1Groth16Proof::load(path_to).map_err(|e| anyhow::anyhow!(e)).unwrap();
+            let fixture = serde_json::from_slice(
+                &fs::read(
+                    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                        .join("../fixtures")
+                        .join("ecdh_fixture.json"),
+                )
+                .unwrap(),
+            )
+            .unwrap();
+
+            return Ok((
+                fixture,
+                proof.bytes().as_bytes().to_vec(),
+                proof.public_values.to_vec(),
+            ));
+        }
+    }
+
+    // this is the first message encrypted under *this* key
     let nonce: [u8; 12] = [0u8; 12];
 
     let key: [u8; 32] = fs::read("./data/zkpoex_enc_key")
         .unwrap()
         .try_into()
         .unwrap();
-
 
     // Setup the prover client.
     let client = ProverClient::new();
@@ -143,6 +173,10 @@ pub fn prove(local_sk: &[u8], vendor_pk: &[u8]) -> anyhow::Result<(SP1EcdhProofF
     let proof = client
         .prove_groth16(&pk, stdin)
         .expect("failed to generate proof");
+
+    if let Some(path_to) = path_to {
+        proof.save(path_to).expect("failed to save proof");
+    }
 
     let KeyEncOut { keyHash, keyCipher } =
         KeyEncOut::abi_decode(proof.public_values.as_slice(), false).unwrap();
@@ -160,5 +194,9 @@ pub fn prove(local_sk: &[u8], vendor_pk: &[u8]) -> anyhow::Result<(SP1EcdhProofF
         key_hash,
     };
 
-    Ok((fixture, proof.bytes().as_bytes().to_vec(), proof.public_values.to_vec()))
+    Ok((
+        fixture,
+        proof.bytes().as_bytes().to_vec(),
+        proof.public_values.to_vec(),
+    ))
 }

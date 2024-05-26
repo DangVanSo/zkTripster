@@ -74,11 +74,11 @@ contract ProofOfExploit is ERC721, KeyEnc {
      */
     function purchaseToken(uint256 exploitId) external payable {
         Exploit storage exploit = exploits[exploitId];
-        require(msg.value >= exploit.price, "Insufficient funds");
+        // require(msg.value >= exploit.price, "Insufficient funds");
 
-        _transfer(exploit.creator, msg.sender, exploitId);
+        // _transfer(exploit.creator, msg.sender, exploitId);
 
-        exploit.purchasedBy = msg.sender;
+        // exploit.purchasedBy = msg.sender;
 
         emit TokenPurchased(exploitId, msg.sender);
     }

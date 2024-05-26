@@ -1,4 +1,4 @@
-use ::k256::elliptic_curve::ff::PrimeField;
+use ethers::core::k256::elliptic_curve::PrimeField;
 use anyhow::anyhow;
 use ethers::prelude::*;
 use ethers::{core::k256::elliptic_curve::Field, prelude::coins_bip39::English};

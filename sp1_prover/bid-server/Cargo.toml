@@ -16,7 +16,7 @@ backoff = { version = "0.4.0", features = ["tokio"] }
 chrono = "0.4.19"
 clap = { version = "4.0.18", features = ["derive"] }
 k256 = { version = "0.7" }
-ethers = { version = "2" }
+ethers = { version = "2.0.14", features = ["ws"]}
 eyre = "0.6.8"
 futures = "0.3.21"
 futures-util = "0.3"
@@ -42,11 +42,4 @@ eth-keystore = "0.5.0"
 zkpoex = { path = "../zkpoex-script", package = "zkpoex-script" }
 zkecdh = { path = "../ecdh-script", package = "ecdh-script" }
 
-rocket = { version = "0.5.1", features = ["json"] }
-cli-batteries = "0.5"
-clap = { version = "4.5.4", features = ["derive"] }
-rocket_cors = "0.6.0"
-
 [build-dependencies]
-
-cli-batteries = "0.5"

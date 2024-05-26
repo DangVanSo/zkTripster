@@ -92,34 +92,34 @@ async fn prover(args: ProverArgs) -> anyhow::Result<()> {
             .with_signer(wallet.with_chain_id(chain_id)),
     );
 
-    let block = client.get_block_number().await?;
+    let block = client.clone().get_block_number().await?;
 
     let platform_contract = Address::from_slice(&hex::decode(args.platform_contract).unwrap());
     // .map_err(|e| anyhow!("error parsing target address: {e}"))?;
 
-    let (fixture, proof_bytes) = zkpoex::prove(args.args)?;
+    // let (fixture, proof_bytes) = zkpoex::prove(args.args)?;
 
     let bounty_eth = args.ask_bounty;
 
     let bounty_gwei =
         parse_ether(args.ask_bounty).map_err(|e| anyhow!("error parsing ether: {e}"))?;
-    let contract = ProofOfExploitMarketplace::new(platform_contract, client);
+    let contract = ProofOfExploitMarketplace::new(platform_contract, client.clone());
 
-    // let proof_bytes = vec![0u8; 32];
-    // let key_hash = [0u8; 32];
+    let proof_bytes = vec![0u8; 32];
+    let key_hash = [0u8; 32];
 
     let vuln_id: U256 = {
         let vuln_id = contract
             .post_exploit(
                 "got 'em".to_string(),
                 bounty_gwei,
-                hex::decode(&fixture.key_hash).unwrap().try_into().unwrap(),
+                key_hash, //hex::decode(&fixture.key_hash).unwrap().try_into().unwrap(),
             )
             .await?;
         let tx = contract.post_exploit(
             "got 'em".to_string(),
             bounty_gwei,
-            hex::decode(fixture.key_hash).unwrap().try_into().unwrap(),
+            key_hash, //hex::decode(fixture.key_hash).unwrap().try_into().unwrap(),
         );
 
         let pending_tx = tx.send().await?;
@@ -131,33 +131,54 @@ async fn prover(args: ProverArgs) -> anyhow::Result<()> {
     println!("vuln id: {}", vuln_id);
 
     tokio::spawn(async move {
-        server::rocket(proof_bytes, bounty_eth, vuln_id.to_string())
+        server::rocket(proof_bytes, bounty_eth, vuln_id.to_string(), args.local_pk.clone())
             .launch()
             .await
             .expect("expect server to run");
     });
 
     // for testing
-    // {
-    //     let c = contract.clone();
-    //     tokio::spawn(async move {
-    //         let tx = c.purchase_token(vuln_id);
+    {
+        let c = contract.clone();
+        tokio::spawn(async move {
+            let tx = c.purchase_token(vuln_id).value(bounty_gwei);
 
-    //         let pending_tx = tx.send().await.unwrap();
-    //         let _mined_tx = pending_tx.await.unwrap();
-    //     });
-    // }
+            let pending_tx = tx.send().await.unwrap();
+            let _mined_tx = pending_tx.await.unwrap();
+            println!("Token purchased");
+        });
+    }
 
-    let events = contract.events().from_block(0);
-    let mut stream = events.stream().await?.take(1);
+    let events = contract
+        .event::<TokenPurchasedFilter>()
+        .from_block(block - 1);
+    let mut stream = events.stream().await?;
+
+    //     let erc20_transfer_filter =
+    //     Filter::new().from_block(0).event("TokenPurchased(uint256, address)");
+
+    // let mut stream = client.subscribe_logs(&erc20_transfer_filter).await?.take(1);
+
+    // let erc20_transfer_filter = Filter::new()
+    //     .from_block(block - 25)
+    //     .event("Transfer(address,address,uint256)");
+
+    // let mut stream = client.subscribe_logs(&erc20_transfer_filter).await?.take(2);
 
     // wasn't able to get buyer pk from event so need to pass it into CL
     let vendor_pk_bytes = hex::decode(args.vendor_pk).unwrap();
 
-    while let Some(std::result::Result::Ok(e)) = stream.next().await {
+    println!("Waiting for exploit redemption");
+    while let Some(e) = stream.next().await {
         println!("RedeemedFilter event: {e:?}");
 
-        let (_, proof, public_inputs) = zkecdh::prove(&local_sk, &vendor_pk_bytes)?;
+        let (_, proof, public_inputs) = zkecdh::prove(
+            &local_sk,
+            &vendor_pk_bytes,
+            Some(Path::new(&format!(
+                "./data/vuln_keyenc.bincode"
+            ))),
+        )?;
 
         let tx = contract.redeem_exploit(vuln_id, proof.into(), public_inputs.into());
 

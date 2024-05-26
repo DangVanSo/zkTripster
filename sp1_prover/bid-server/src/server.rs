@@ -20,6 +20,7 @@ struct Resp {
     proof: String,
     price: f64,
     vuln_id: String,
+    seller_pk: String
 }
 
 // return contets of proof
@@ -29,8 +30,8 @@ async fn proof(cors: Guard<'_>, args: &State<Resp>) -> Responder<Json<Resp>> {
     cors.responder(Json(resp))
 }
 
-pub fn rocket(proof_bytes: Vec<u8>, price: f64, vuln_id: String) -> Rocket<Build> {
-    let allowed_origins = AllowedOrigins::some_exact(&["https://zktripster.pages.dev"]);
+pub fn rocket(proof_bytes: Vec<u8>, price: f64, vuln_id: String, local_pk: String) -> Rocket<Build> {
+    let allowed_origins = AllowedOrigins::all();
     let cors = rocket_cors::CorsOptions {
         allowed_origins,
         allowed_methods: vec![Method::Get].into_iter().map(From::from).collect(),
@@ -51,6 +52,6 @@ pub fn rocket(proof_bytes: Vec<u8>, price: f64, vuln_id: String) -> Rocket<Build
     rocket::build()
         .mount("/", routes![proof])
         .mount("/", rocket_cors::catch_all_options_routes())
-        .manage(Resp { proof: hex::encode(proof_bytes), price, vuln_id })
+        .manage(Resp { proof: hex::encode(proof_bytes), price, vuln_id, seller_pk: local_pk})
         .manage(cors)
 }
