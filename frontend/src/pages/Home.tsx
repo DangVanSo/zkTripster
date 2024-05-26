@@ -9,10 +9,7 @@ const Home: React.FC = () => {
         <StyledContainer>
             <Box my={4}>
                 <Typography variant="h4" component="h1" gutterBottom>
-                    Welcome to My Web3 App
-                </Typography>
-                <Typography variant="body1">
-                    This is a simple example of a React app using Material UI, TypeScript, and Vite.
+                    Time Release Incentive Platform for Security Threads Ethical Reporting
                 </Typography>
             </Box>
         </StyledContainer>

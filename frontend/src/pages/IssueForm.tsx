@@ -7,12 +7,13 @@ import styled from "@emotion/styled";
 import {useParams} from "react-router-dom";
 import {verifyZkPoex, fetchContractData} from "../utils";
 import useMetaMask from "../hooks/useMetamask.ts";
-import {purchaseToken} from "../../contracts/src/scripts/api.ts";
+import {purchaseToken, unwatchPurchase, unwatchRedeem} from "../../contracts/src/scripts/api.ts";
 
 const IssueForm: React.FC = () => {
     const {contract_address} = useParams<{ contract_address: string }>();
     const [zkPoex, setZkPoex] = useState('')
     const [enc, setEnc] = useState('')
+    const [purchaseTokenResult, setPurchaseTokenResult] = useState()
     const [verificationResult, setVerificationResult] = useState<string | null>(null);
     const {isConnected, connectMetaMask, account, walletClient} = useMetaMask();
 
@@ -41,17 +42,16 @@ const IssueForm: React.FC = () => {
         }
     }, [zkPoex, enc]);
 
-    // const handleBountyAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //     const formattedValue = formatEthAmount(event.target.value);
-    //     setBountyAmount(formattedValue);
-    // };
-    //
-    // const handleSubmit = async (event: React.FormEvent) => {
-    //     event.preventDefault();
-    //     console.log('Contract Address:', contract_address);
-    //     console.log('Call Data:', callData);
-    //     console.log('Bounty Amount:', bountyAmount);
-    // };
+
+    useEffect(() => {
+      if(purchaseTokenResult && isConnected) {
+          const purchase = unwatchPurchase()
+          const redeem = unwatchRedeem()
+
+          console.log(purchase)
+          console.log(redeem)
+      }
+    }, [purchaseTokenResult, isConnected])
 
 
     const renderVerificationBox = () => {
@@ -78,6 +78,7 @@ const IssueForm: React.FC = () => {
             )
         }
 
+    console.log('purchaseTokenResult', purchaseTokenResult)
 
     return (
         <Container>
@@ -96,36 +97,15 @@ const IssueForm: React.FC = () => {
                                     color="primary"
                                     onClick={async () => {
                                         if (walletClient) {
-                                            await purchaseToken(walletClient, 0)
+                                            const purchaseTokenResult = await purchaseToken(walletClient, 0)
+                                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                            // @ts-expect-error
+                                            setPurchaseTokenResult(purchaseTokenResult)
                                         }
-                                    }}>Deposit Tokens</Button>
+                                    }}>
+                                Deposit Tokens
+                            </Button>
                         )}
-                        {/*<form onSubmit={handleSubmit} noValidate autoComplete="off">*/}
-                        {/*    <TextField*/}
-                        {/*        label="Call Data"*/}
-                        {/*        variant="outlined"*/}
-                        {/*        fullWidth*/}
-                        {/*        onChange={(e) => setCallData(e.target.value)}*/}
-                        {/*        margin="normal"*/}
-                        {/*        multiline*/}
-                        {/*        rows={4}*/}
-                        {/*    />*/}
-                        {/*    <TextField*/}
-                        {/*        label="Bounty Amount (ETH)"*/}
-                        {/*        variant="outlined"*/}
-                        {/*        fullWidth*/}
-                        {/*        value={bountyAmount}*/}
-                        {/*        onChange={handleBountyAmountChange}*/}
-                        {/*        margin="normal"*/}
-                        {/*    />*/}
-                        {/*    <StyledButtonWrapper>*/}
-                        {/*        <Button type="submit" disabled={!(bountyAmount.length && callData.length)}*/}
-                        {/*                variant="contained"*/}
-                        {/*                size="large" color="primary">*/}
-                        {/*            Generate Proof*/}
-                        {/*        </Button>*/}
-                        {/*    </StyledButtonWrapper>*/}
-                        {/*</form>*/}
                     </>
                 ) : (verificationResult && renderVerificationBox())}
             </StyledBox>
@@ -141,10 +121,6 @@ const StyledBox = styled(Box)`
     margin-top: 40px;
 `
 
-// const StyledButtonWrapper = styled('div')`
-//     width: 100%;
-//     text-align: right;
-// `
 
 const VerificationResultBox = styled(Box)<{ isValid: boolean }>`
     margin-top: 20px;
