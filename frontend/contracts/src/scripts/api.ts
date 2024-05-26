@@ -4,7 +4,9 @@ import {
     custom,
     parseAbiItem,
     encodeFunctionData,
-    WalletClient} from 'viem'
+    WalletClient,
+    decodeEventLog,
+    Log} from 'viem'
 import { sepolia } from 'viem/chains'
 
 import abi from '../../lib/PoEMarketplace_abi.json'
@@ -58,6 +60,21 @@ export const unwatchRedeem = publicClient.watchEvent({
     onLogs: logs => console.log(logs)
 })
 
+// uses the logs emitted from watch functions 
+export const parseEventLogs = (logs:Log[]) => logs
+    .filter(log => log.address.toLowerCase() === CONTRACT.toLowerCase())
+    .map(log => decodeEventLog({
+        abi: abi,
+        data: log.data,
+        topics: log.topics
+    }))
+    .find(decodedLog => decodedLog.eventName === 'TokenPurchased' || decodedLog.eventName === 'ExploitRedeemed')
+
+// After a token is purchased, the buyer's address is used by the seller to compute the proofs
+export const getBuyerAddressFromTokenPurchasedEvent = (tokenPurchasedLog:Log) => (tokenPurchasedLog as any).args.buyer
+
+// After an Exploit is redeemed, the buyer must obtain a) the seller's public key from the signature of the redeem transaction,
+// this is handled off-chain, and b) the shared key cipher from the contract, by calling the retrieveSharedKeyCipher function below.
 
 // A White Hat Hacker can post an exploit to the marketplace
 export const postExploit = async (walletClient: WalletClient, description: string, price: bigint, hash: bigint) => await writeContract(walletClient, 'postExploit', [description, price, hash])
