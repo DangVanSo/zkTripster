@@ -74,7 +74,8 @@ export const retrieveSharedKeyCipher = async (tokenId:number) => publicClient.re
 
 // The White Hat computes proofs, then calls the redeem function with the token ID (exploit ID) and the shared key.
 // Returns the transaction hash and the signature to derive the public key, which will be provdied via the front end to the buyer.
-// The buyer will then call the retrieveKey function, and use the retrieved sharedKeyCipher and the public key to decrypt the shared key.
+// The buyer will then call the retrieveKey function, and use the retrieved sharedKeyCipher and the public key to decrypt the shared key
+// via the 'decryptEcdhChacha20' function in the frontend/src/utils/decrypt.ts file.
 export const redeemSigned = async (tokenId:number, key:bigint) => {
     const data = encodeFunctionData({
         abi: abi,
