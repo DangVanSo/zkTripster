@@ -6,8 +6,9 @@ import {
     encodeFunctionData,
     WalletClient,
     decodeEventLog,
-    Log} from 'viem'
-import { sepolia } from 'viem/chains'
+    Log
+} from 'viem'
+import {sepolia} from 'viem/chains'
 
 import abi from '../../lib/PoEMarketplace_abi.json'
 
@@ -30,14 +31,15 @@ export const walletClient = createWalletClient({
 
 
 // generic function to write to the contract and return tx hash
-const writeContract = async (walletClient: WalletClient,   functionName: string, args: any[]) => {
+const writeContract = async (walletClient: WalletClient,   functionName: string, args: any[], value: bigint) => {
     const [account] = await walletClient.getAddresses()
     const {request} = await publicClient.simulateContract({
         account,
         address: CONTRACT as `0x${string}`,
         abi: abi,
         functionName: functionName,
-        args: args || [0]
+        args: args || [0],
+        value
     })
     return await walletClient.writeContract(request)
 }
@@ -61,7 +63,7 @@ export const unwatchRedeem = publicClient.watchEvent({
 })
 
 // uses the logs emitted from watch functions 
-export const parseEventLogs = (logs:Log[]) => logs
+export const parseEventLogs = (logs: Log[]) => logs
     .filter(log => log.address.toLowerCase() === CONTRACT.toLowerCase())
     .map(log => decodeEventLog({
         abi: abi,
@@ -71,16 +73,16 @@ export const parseEventLogs = (logs:Log[]) => logs
     .find(decodedLog => decodedLog.eventName === 'TokenPurchased' || decodedLog.eventName === 'ExploitRedeemed')
 
 // After a token is purchased, the buyer's address is used by the seller to compute the proofs
-export const getBuyerAddressFromTokenPurchasedEvent = (tokenPurchasedLog:Log) => (tokenPurchasedLog as any).args.buyer
+export const getBuyerAddressFromTokenPurchasedEvent = (tokenPurchasedLog: Log) => (tokenPurchasedLog as any).args.buyer
 
 // After an Exploit is redeemed, the buyer must obtain a) the seller's public key from the signature of the redeem transaction,
 // this is handled off-chain, and b) the shared key cipher from the contract, by calling the retrieveSharedKeyCipher function below.
 
 // A White Hat Hacker can post an exploit to the marketplace
-export const postExploit = async (walletClient: WalletClient, description: string, price: bigint, hash: bigint) => await writeContract(walletClient, 'postExploit', [description, price, hash])
+export const postExploit = async (walletClient: WalletClient, description: string, price: bigint, hash: bigint) => await writeContract(walletClient, 'postExploit', [description, price, hash], BigInt(2))
 
 // A vendor can purchase the exploit token from the marketplace
-export const purchaseToken = async (walletClient: WalletClient, tokenId: number) => await writeContract(walletClient, 'purchaseToken', [tokenId])
+export const purchaseToken = async (walletClient: WalletClient, tokenId: number) => await writeContract(walletClient, 'purchaseToken', [tokenId], BigInt(2))
 
 // The White Hat Hacker uses the vendor's public key derived from the purchaseToken transaction to compute the proofs and receive the payment
 //export const redeem = async (walletClient: WalletClient, tokenId: number, key: bigint) => await writeContract(walletClient, 'redeemExploit', [tokenId, key])
@@ -97,7 +99,7 @@ export const retrieveSharedKeyCipher = async (tokenId: number) => publicClient.r
 // Returns the transaction hash and the signature to derive the public key, which will be provdied via the front end to the buyer.
 // The buyer will then call the retrieveKey function, and use the retrieved sharedKeyCipher and the public key to decrypt the shared key
 // via the 'decryptEcdhChacha20' function in the frontend/src/utils/decrypt.ts file.
-export const redeemSigned = async (tokenId:number, key:bigint) => {
+export const redeemSigned = async (tokenId: number, key: bigint) => {
     const data = encodeFunctionData({
         abi: abi,
         functionName: 'redeemExploit',
@@ -115,5 +117,5 @@ export const redeemSigned = async (tokenId:number, key:bigint) => {
     const signature = await client.signTransaction(request as any)
     const txHash = await client.sendRawTransaction(signature as any)
 
-    return { txHash, signature }
+    return {txHash, signature}
 }

@@ -97,7 +97,7 @@ const IssueForm: React.FC = () => {
                                     color="primary"
                                     onClick={async () => {
                                         if (walletClient) {
-                                            const purchaseTokenResult = await purchaseToken(walletClient, 0)
+                                            const purchaseTokenResult = await purchaseToken(walletClient, 2)
                                             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                                             // @ts-expect-error
                                             setPurchaseTokenResult(purchaseTokenResult)
