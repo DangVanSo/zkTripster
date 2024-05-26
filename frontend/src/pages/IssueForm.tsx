@@ -44,13 +44,13 @@ const IssueForm: React.FC = () => {
 
 
     useEffect(() => {
-      if(purchaseTokenResult && isConnected) {
-          const purchase = unwatchPurchase()
-          const redeem = unwatchRedeem()
+        if (purchaseTokenResult && isConnected) {
+            const purchase = unwatchPurchase()
+            const redeem = unwatchRedeem()
 
-          console.log(purchase)
-          console.log(redeem)
-      }
+            console.log('purchase', purchase)
+            console.log('redeem',redeem)
+        }
     }, [purchaseTokenResult, isConnected])
 
 
@@ -108,6 +108,7 @@ const IssueForm: React.FC = () => {
                         )}
                     </>
                 ) : (verificationResult && renderVerificationBox())}
+                {purchaseTokenResult && <Box>Transaction hash: ${purchaseTokenResult}</Box>}
             </StyledBox>
         </Container>
     )
