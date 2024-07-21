@@ -10,7 +10,9 @@ The notion of time-lock encryption (TLE) can be expressed simply: ciphertexts ar
 
 The coordinated vulnerability disclosure (CVD, aka responsible disclosure) is a model in which a vulnerability is disclosed to the public only after the responsible parties have been allowed sufficient time to patch or remedy the vulnerability.
 
-The aim of this project is to create an end-to-end verifiable cryptographic infrastructure that facilitates coordinated vulnerability disclosure and contingent transactions for trading exploit information for monetary reward.
+The aim of this project is to create an end-to-end verifiable cryptographic infrastructure that facilitates coordinated vulnerability disclosure and contingent transactions for trading exploit information for monetary reward. 
+
+Also, see a [full proposal](https://hackmd.io/@timofey/HJmw2StXA) note.
 
 ## Problem
 
